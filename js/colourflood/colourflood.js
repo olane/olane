@@ -19,13 +19,33 @@ var cells,
     context = canvas.node().getContext("2d"),
     image = context.createImageData(1, 1),
     distance = d3.range(width * height).map(function() { return 0; }),
-    frontier = [Math.floor(width / 2) + Math.floor(height / 2) * width];
+    visited = new Uint8Array(width * height),
+    center = Math.floor(width / 2) + Math.floor(height / 2) * width,
+    frontier = [center];
+
+visited[center] = 1;
 
 var mazeWorker = new Worker("js/colourflood/maze.js");
 
 mazeWorker.postMessage({width: width, height: height});
 
 var isRunning = false;
+var mode = "colour";
+
+function pickStart() {
+  return Math.floor(Math.random() * (width * height));
+}
+
+function resetDistance() {
+  for (var k = 0; k < distance.length; k++) distance[k] = 0;
+}
+
+function resetVisited(startPoint) {
+  for (var k = 0; k < visited.length; k++) visited[k] = 0;
+  frontier.length = 0;
+  frontier.push(startPoint);
+  visited[startPoint] = 1;
+}
 
 function startTimer() {
   if (isRunning) return;
@@ -34,6 +54,10 @@ function startTimer() {
     for (var i = 0; i < 200; ++i) {
       if (exploreFrontier()) {
         isRunning = false;
+        mode = (mode === "colour") ? "erase" : "colour";
+        if (mode === "colour") resetDistance();
+        resetVisited(pickStart());
+        startTimer();
         return true;
       }
     }
@@ -53,7 +77,8 @@ document.addEventListener("click", function(event) {
   var y = Math.floor((event.clientY - r.top) * (height / r.height));
   if (x < 0 || y < 0 || x >= width || y >= height) return;
   var i = y * width + x;
-  distance[i] = 0;
+  if (visited[i]) return;
+  visited[i] = 1;
   frontier.push(i);
   startTimer();
 });
@@ -65,20 +90,26 @@ function exploreFrontier() {
       i1,
       d0 = distance[i0],
       d1 = d0 + .25,
-      color = d3.hsl((d0)/5.5 % 360, 
-                     Math.pow(Math.E, -d0 * 0.0003),
-                     1 - 0.5 * Math.pow(Math.E, -d0 * 0.0003)).rgb();
+      px = i0 % width,
+      py = i0 / width | 0;
 
-  image.data[0] = color.r;
-  image.data[1] = color.g;
-  image.data[2] = color.b;
-  image.data[3] = 200;
-  context.putImageData(image, i0 % width, i0 / width | 0);
+  if (mode === "colour") {
+    var color = d3.hsl((d0)/5.5 % 360,
+                       Math.pow(Math.E, -d0 * 0.0003),
+                       1 - 0.5 * Math.pow(Math.E, -d0 * 0.0003)).rgb();
+    image.data[0] = color.r;
+    image.data[1] = color.g;
+    image.data[2] = color.b;
+    image.data[3] = 200;
+    context.putImageData(image, px, py);
+  } else {
+    context.clearRect(px, py, 1, 1);
+  }
 
-  if (cells[i0] & E && !distance[i1 = i0 + 1]) distance[i1] = d1, frontier.push(i1);
-  if (cells[i0] & W && !distance[i1 = i0 - 1]) distance[i1] = d1, frontier.push(i1);
-  if (cells[i0] & S && !distance[i1 = i0 + width]) distance[i1] = d1, frontier.push(i1);
-  if (cells[i0] & N && !distance[i1 = i0 - width]) distance[i1] = d1, frontier.push(i1);
+  if (cells[i0] & E && !visited[i1 = i0 + 1])     distance[i1] = distance[i1] || d1, visited[i1] = 1, frontier.push(i1);
+  if (cells[i0] & W && !visited[i1 = i0 - 1])     distance[i1] = distance[i1] || d1, visited[i1] = 1, frontier.push(i1);
+  if (cells[i0] & S && !visited[i1 = i0 + width]) distance[i1] = distance[i1] || d1, visited[i1] = 1, frontier.push(i1);
+  if (cells[i0] & N && !visited[i1 = i0 - width]) distance[i1] = distance[i1] || d1, visited[i1] = 1, frontier.push(i1);
 
 }
 
