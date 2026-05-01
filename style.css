@@ -5,7 +5,10 @@
 	--link: #1a1a1a;
 }
 
-* { box-sizing: border-box; }
+* { 
+	box-sizing: border-box;
+	text-shadow: 1px 1px 1.5rem var(--bg);
+}
 
 html {
 	background: var(--bg);
