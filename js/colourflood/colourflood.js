@@ -25,18 +25,37 @@ var mazeWorker = new Worker("js/colourflood/maze.js");
 
 mazeWorker.postMessage({width: width, height: height});
 
-mazeWorker.addEventListener("message", function(event) {
-  mazeWorker.terminate();
+var isRunning = false;
 
-  cells = event.data;
-
+function startTimer() {
+  if (isRunning) return;
+  isRunning = true;
   d3.timer(function() {
-    for (var i = 0; i < 100; ++i) {
+    for (var i = 0; i < 200; ++i) {
       if (exploreFrontier()) {
+        isRunning = false;
         return true;
       }
     }
   });
+}
+
+mazeWorker.addEventListener("message", function(event) {
+  mazeWorker.terminate();
+  cells = event.data;
+  startTimer();
+});
+
+document.addEventListener("click", function(event) {
+  if (!cells) return;
+  var r = canvasEl.getBoundingClientRect();
+  var x = Math.floor((event.clientX - r.left) * (width / r.width));
+  var y = Math.floor((event.clientY - r.top) * (height / r.height));
+  if (x < 0 || y < 0 || x >= width || y >= height) return;
+  var i = y * width + x;
+  distance[i] = 0;
+  frontier.push(i);
+  startTimer();
 });
 
 function exploreFrontier() {
