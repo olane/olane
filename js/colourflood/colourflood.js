@@ -17,15 +17,13 @@ var canvas = d3.select("#bg");
 
 var cells,
     context = canvas.node().getContext("2d"),
-    image = context.createImageData(1, 1),
-    imageData = image.data,
+    canvasImage = context.createImageData(width, height),
+    canvasData = canvasImage.data,
     distance = d3.range(width * height).map(function() { return 0; }),
     visited = new Uint8Array(width * height),
     hueShift = new Float32Array(width * height),
     center = Math.floor(width / 2) + Math.floor(height / 2) * width,
     frontier = [center];
-
-imageData[3] = 200;
 
 visited[center] = 1;
 
@@ -58,15 +56,21 @@ function startTimer() {
   if (isRunning) return;
   isRunning = true;
   d3.timer(function() {
+    var done = false;
     for (var i = 0; i < 200; ++i) {
       if (exploreFrontier()) {
-        isRunning = false;
-        mode = (mode === "colour") ? "erase" : "colour";
-        if (mode === "colour") resetDistance();
-        resetVisited(pickStart());
-        startTimer();
-        return true;
+        done = true;
+        break;
       }
+    }
+    context.putImageData(canvasImage, 0, 0);
+    if (done) {
+      isRunning = false;
+      mode = (mode === "colour") ? "erase" : "colour";
+      if (mode === "colour") resetDistance();
+      resetVisited(pickStart());
+      startTimer();
+      return true;
     }
   });
 }
@@ -98,15 +102,16 @@ function exploreFrontier() {
       i1,
       d0 = distance[i0],
       d1 = d0 + .25,
-      px = i0 % width,
-      py = i0 / width | 0;
+      idx = i0 * 4;
 
   if (mode === "colour") {
     var fade = Math.exp(-d0 * 0.0003);
-    paintHSL(((d0)/5.5 + hueShift[i0]) % 360, fade, 1 - 0.5 * fade);
-    context.putImageData(image, px, py);
+    paintHSL(((d0)/5.5 + hueShift[i0]) % 360, fade, 1 - 0.5 * fade, idx);
   } else {
-    context.clearRect(px, py, 1, 1);
+    canvasData[idx] = 0;
+    canvasData[idx + 1] = 0;
+    canvasData[idx + 2] = 0;
+    canvasData[idx + 3] = 0;
   }
 
   if (cells[i0] & E && !visited[i1 = i0 + 1])     distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
@@ -116,7 +121,7 @@ function exploreFrontier() {
 
 }
 
-function paintHSL(h, s, l) {
+function paintHSL(h, s, l, idx) {
   var c = (1 - Math.abs(2 * l - 1)) * s,
       hp = h / 60,
       x = c * (1 - Math.abs(hp % 2 - 1)),
@@ -128,9 +133,10 @@ function paintHSL(h, s, l) {
   else if (hp < 5) r1 = x, g1 = 0, b1 = c;
   else             r1 = c, g1 = 0, b1 = x;
   var m = l - c / 2;
-  imageData[0] = (r1 + m) * 255;
-  imageData[1] = (g1 + m) * 255;
-  imageData[2] = (b1 + m) * 255;
+  canvasData[idx]     = (r1 + m) * 255;
+  canvasData[idx + 1] = (g1 + m) * 255;
+  canvasData[idx + 2] = (b1 + m) * 255;
+  canvasData[idx + 3] = 200;
 }
 
 function popRandom(array) {
