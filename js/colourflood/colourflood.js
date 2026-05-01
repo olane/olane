@@ -1,23 +1,25 @@
 
 
-var width = window.innerWidth,
-    height = window.innerHeight;
+var canvasEl = document.getElementById("bg");
+var rect = canvasEl.getBoundingClientRect();
+var width = Math.floor(rect.width),
+    height = Math.floor(rect.height);
+
+canvasEl.width = width;
+canvasEl.height = height;
 
 var N = 1 << 0,
     S = 1 << 1,
     W = 1 << 2,
     E = 1 << 3;
 
-var canvas = d3.select("#header-canvas");
-
-canvas.attr("width", width)
-      .attr("height", height);
+var canvas = d3.select("#bg");
 
 var cells,
     context = canvas.node().getContext("2d"),
     image = context.createImageData(1, 1),
     distance = d3.range(width * height).map(function() { return 0; }),
-    frontier = [(height + 1) * width / 2];
+    frontier = [Math.floor(width / 2) + Math.floor(height / 2) * width];
 
 var mazeWorker = new Worker("js/colourflood/maze.js");
 
