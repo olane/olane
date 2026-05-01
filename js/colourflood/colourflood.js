@@ -18,10 +18,14 @@ var canvas = d3.select("#bg");
 var cells,
     context = canvas.node().getContext("2d"),
     image = context.createImageData(1, 1),
+    imageData = image.data,
     distance = d3.range(width * height).map(function() { return 0; }),
     visited = new Uint8Array(width * height),
+    hueShift = new Float32Array(width * height),
     center = Math.floor(width / 2) + Math.floor(height / 2) * width,
     frontier = [center];
+
+imageData[3] = 200;
 
 visited[center] = 1;
 
@@ -37,7 +41,10 @@ function pickStart() {
 }
 
 function resetDistance() {
-  for (var k = 0; k < distance.length; k++) distance[k] = 0;
+  for (var k = 0; k < distance.length; k++) {
+    distance[k] = 0;
+    hueShift[k] = 0;
+  }
 }
 
 function resetVisited(startPoint) {
@@ -78,6 +85,7 @@ document.addEventListener("click", function(event) {
   if (x < 0 || y < 0 || x >= width || y >= height) return;
   var i = y * width + x;
   if (visited[i]) return;
+  hueShift[i] = Math.random() * 360;
   visited[i] = 1;
   frontier.push(i);
   startTimer();
@@ -94,23 +102,35 @@ function exploreFrontier() {
       py = i0 / width | 0;
 
   if (mode === "colour") {
-    var color = d3.hsl((d0)/5.5 % 360,
-                       Math.pow(Math.E, -d0 * 0.0003),
-                       1 - 0.5 * Math.pow(Math.E, -d0 * 0.0003)).rgb();
-    image.data[0] = color.r;
-    image.data[1] = color.g;
-    image.data[2] = color.b;
-    image.data[3] = 200;
+    var fade = Math.exp(-d0 * 0.0003);
+    paintHSL(((d0)/5.5 + hueShift[i0]) % 360, fade, 1 - 0.5 * fade);
     context.putImageData(image, px, py);
   } else {
     context.clearRect(px, py, 1, 1);
   }
 
-  if (cells[i0] & E && !visited[i1 = i0 + 1])     distance[i1] = distance[i1] || d1, visited[i1] = 1, frontier.push(i1);
-  if (cells[i0] & W && !visited[i1 = i0 - 1])     distance[i1] = distance[i1] || d1, visited[i1] = 1, frontier.push(i1);
-  if (cells[i0] & S && !visited[i1 = i0 + width]) distance[i1] = distance[i1] || d1, visited[i1] = 1, frontier.push(i1);
-  if (cells[i0] & N && !visited[i1 = i0 - width]) distance[i1] = distance[i1] || d1, visited[i1] = 1, frontier.push(i1);
+  if (cells[i0] & E && !visited[i1 = i0 + 1])     distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
+  if (cells[i0] & W && !visited[i1 = i0 - 1])     distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
+  if (cells[i0] & S && !visited[i1 = i0 + width]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
+  if (cells[i0] & N && !visited[i1 = i0 - width]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
 
+}
+
+function paintHSL(h, s, l) {
+  var c = (1 - Math.abs(2 * l - 1)) * s,
+      hp = h / 60,
+      x = c * (1 - Math.abs(hp % 2 - 1)),
+      r1, g1, b1;
+  if (hp < 1)      r1 = c, g1 = x, b1 = 0;
+  else if (hp < 2) r1 = x, g1 = c, b1 = 0;
+  else if (hp < 3) r1 = 0, g1 = c, b1 = x;
+  else if (hp < 4) r1 = 0, g1 = x, b1 = c;
+  else if (hp < 5) r1 = x, g1 = 0, b1 = c;
+  else             r1 = c, g1 = 0, b1 = x;
+  var m = l - c / 2;
+  imageData[0] = (r1 + m) * 255;
+  imageData[1] = (g1 + m) * 255;
+  imageData[2] = (b1 + m) * 255;
 }
 
 function popRandom(array) {
