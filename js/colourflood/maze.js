@@ -8,60 +8,30 @@ self.addEventListener("message", function(event) {
 });
 
 function generateMaze(width, height) {
-  var cells = new Array(width * height), // each cell’s edge bits
-      remaining = range(width * height), // cell indexes to visit
-      previous = new Array(width * height); // current random walk
-      traps = new Array(width * height); //cells we can't leave
-
-  var r = Math.min(height * 1/2 - 2, width * 1/2 - 2);
-
-  for(var i = 0; i < width * height; i++){
-    var y = i/width;
-    var x = i%width;
-
-    // if(Math.pow(x - width/2, 2) + Math.pow(y - height/2, 2) > Math.pow(r, 2)) {
-    //   traps[i] = true;
-    // }
-    // else {
-    //   traps[i] = false;
-    // }
-
-    var buffer = 0;
-
-    if(x < buffer || x > width-buffer || 
-       y < buffer || y > height-buffer ){
-      traps[i] = true;
-    }
-    else{
-      traps[i] = false;
-    }
-  }
-
+  var n = width * height;
+  var cells = new Uint8Array(n);
+  var inMaze = new Uint8Array(n);
+  var remaining = new Array(n);
+  for (var k = 0; k < n; k++) remaining[k] = k;
+  var previous = new Int32Array(n);
+  for (var k = 0; k < n; k++) previous[k] = -1;
 
   // Add a random cell.
   var start = remaining.pop();
-  cells[start] = 0;
+  inMaze[start] = 1;
 
   // While there are remaining cells,
   // add a loop-erased random walk to the maze.
   while (!loopErasedRandomWalk());
 
-  for(var i = 0; i < width * height; i++){
-    if(traps[i]) cells[i] = 0;
-  }
-
   return cells;
 
   function loopErasedRandomWalk() {
-    var direction,
-        index0,
-        index1,
-        i,
-        j;
+    var direction, index0, index1, i, j;
 
-    // Pick a location that’s not yet in the maze (if any).
+    // Pick a location that's not yet in the maze (if any).
     do if ((index0 = remaining.pop()) == null) return true;
-    while (cells[index0] >= 0);
+    while (inMaze[index0]);
 
     // Perform a random walk starting at this location,
     previous[index0] = index0;
@@ -71,47 +41,36 @@ function generateMaze(width, height) {
 
       // picking a legal random direction at each step.
       direction = Math.random() * 4 | 0;
-      if (direction === 0) { 
-        if (j <= 0 ) continue walk; 
-        --j; 
-      }
-      else if (direction === 1) { 
-        if (j >= height - 1) continue walk; 
-        ++j;
-      }
-      else if (direction === 2) { 
-        if (i <= 0 ) continue walk; 
-        --i;
-      }
-      else { 
-        if (i >= width - 1 ) continue walk;
-        ++i; 
-      }
+      if      (direction === 0) { if (j <= 0)          continue walk; --j; }
+      else if (direction === 1) { if (j >= height - 1) continue walk; ++j; }
+      else if (direction === 2) { if (i <= 0)          continue walk; --i; }
+      else                      { if (i >= width - 1)  continue walk; ++i; }
 
       // If this new cell was visited previously during this walk,
       // erase the loop, rewinding the path to its earlier state.
       // Otherwise, just add it to the walk.
       index1 = j * width + i;
-      if (previous[index1] >= 0 ) eraseWalk(index0, index1);
+      if (previous[index1] !== -1) eraseWalk(index0, index1);
       else previous[index1] = index0;
       index0 = index1;
 
-      // If this cell is part of the maze, we’re done walking.
-      if (cells[index1] >= 0) {
+      // If this cell is part of the maze, we're done walking.
+      if (inMaze[index1]) {
 
         // Add the random walk to the maze by backtracking to the starting cell.
-        // Also erase this walk’s history to not interfere with subsequent walks.
+        // Also erase this walk's history to not interfere with subsequent walks.
         while ((index0 = previous[index1]) !== index1) {
           direction = index1 - index0;
-          if (direction === 1) cells[index0] |= E, cells[index1] |= W;
+          if      (direction ===  1) cells[index0] |= E, cells[index1] |= W;
           else if (direction === -1) cells[index0] |= W, cells[index1] |= E;
-          else if (direction < 0) cells[index0] |= N, cells[index1] |= S;
-          else cells[index0] |= S, cells[index1] |= N;
-          previous[index1] = NaN;
+          else if (direction <   0)  cells[index0] |= N, cells[index1] |= S;
+          else                       cells[index0] |= S, cells[index1] |= N;
+          previous[index1] = -1;
+          inMaze[index1] = 1;
           index1 = index0;
         }
-
-        previous[index1] = NaN;
+        previous[index1] = -1;
+        inMaze[index1] = 1;
         return;
       }
     }
@@ -119,17 +78,10 @@ function generateMaze(width, height) {
 
   function eraseWalk(index0, index1) {
     var index;
-    while ((index = previous[index0]) !== index1) previous[index0] = NaN, index0 = index;
-    previous[index0] = NaN;
-  }
-
-  function range(n) {
-    var range = new Array(n), i = -1;
-    while (++i < n) range[i] = i;
-    return range;
-  }
-
-  function coordToIndex(x, y, width, height){
-    return x + y * width;
+    while ((index = previous[index0]) !== index1) {
+      previous[index0] = -1;
+      index0 = index;
+    }
+    previous[index0] = -1;
   }
 }

@@ -2,8 +2,9 @@
 
 var canvasEl = document.getElementById("bg");
 var rect = canvasEl.getBoundingClientRect();
-var width = Math.floor(rect.width),
-    height = Math.floor(rect.height);
+var dpr = window.devicePixelRatio || 1;
+var width = Math.floor(rect.width * dpr),
+    height = Math.floor(rect.height * dpr);
 
 canvasEl.width = width;
 canvasEl.height = height;
@@ -57,7 +58,7 @@ function startTimer() {
   isRunning = true;
   d3.timer(function() {
     var done = false;
-    for (var i = 0; i < 200; ++i) {
+    for (var i = 0; i < 400; ++i) {
       if (exploreFrontier()) {
         done = true;
         break;
