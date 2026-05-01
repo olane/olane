@@ -37,6 +37,16 @@ h1 {
 	font-weight: 600;
 	letter-spacing: -0.01em;
 	margin: 0 0 1.25rem;
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+h1 .avatar {
+	width: 2.25rem;
+	height: 2.25rem;
+	image-rendering: pixelated;
+	flex-shrink: 0;
 }
 
 p {
@@ -59,10 +69,11 @@ a:hover {
 	list-style: none;
 	padding: 0;
 	margin: 2rem 0 0;
+	font-size: 0.9rem;
 }
 
 .links li {
-	margin: 0.35rem 0;
+	margin: 0.3rem 0;
 }
 
 @media (max-width: 480px) {
