@@ -1,226 +1,72 @@
-
-body{
-	background-color: #f8f8f8;
-	color: #444444;
-	font-family: "Helvetica Neue", "Open Source Sans", sans-serif;
+:root {
+	--bg: #fafafa;
+	--fg: #1a1a1a;
+	--muted: #666;
+	--link: #1a1a1a;
 }
 
-#wrapper {
-	width: 660px;
+* { box-sizing: border-box; }
+
+html, body {
+	margin: 0;
+	padding: 0;
+	background: var(--bg);
+	color: var(--fg);
+	font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+	font-size: 18px;
+	line-height: 1.6;
+}
+
+#bg {
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	z-index: -1;
+	display: block;
+}
+
+main {
+	max-width: 640px;
 	margin: 0 auto;
-	padding-left: 20px;
+	padding: 12vh 24px 8vh;
+}
+
+h1 {
+	font-size: 2.25rem;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	margin: 0 0 1.25rem;
+}
+
+p {
+	margin: 0 0 1rem;
+	max-width: 56ch;
 }
 
 a {
-	color: #888888;
+	color: var(--link);
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
 }
 
-p{
-	line-height: 1.5;
+a:hover {
+	text-decoration-thickness: 2px;
 }
 
-/*--------------HEADER-------------------*/
-
-body {
-	background-color: #777777;
-}
-
-header {
-	font-family: MuseoSlab-500;
-	font-weight: normal;
-	font-style: normal;
-	text-align: center;
-	color: #FFFFFF;
-	height: 100%;
-}
-
-
-header .jumbo {
-	padding-top: 130px;
-	font-size: 90px;
-	letter-spacing: 3px;
-	line-height: 1;
-	text-shadow: 7px 6px 0px rgba(0, 0, 0, 0.2);
-	margin: 50px 0 0;
-}
-
-header p {
-	text-shadow: 2px 1px 0px rgba(0, 0, 0, 0.2);
-}
-
-#about {
-	font-size: 18px;
-}
-
-#about a {
-	color: #FFF;
-}
-
-header a {
-	text-shadow: 2px 1px 0px rgba(0, 0, 0, 0.2);
-}
-
-#header-canvas {
-	position: absolute;
-	z-index: -1;
-	width: 100%;
-	height: 100%;
-	left: 0;
-	right: 0;
-	top: 0;
-	margin: 0 auto;
-}
-
-
-
-/*---------------UPFRONT NAV----------------*/
-
-.upfront-nav{
-	margin-top: 70px;
-	font-family: "Lato", "Helvetica Neue", "Open Source Sans", sans-serif;
-}
-
-.upfront-nav a {
-	font-size: 18px;
-	line-height: 1.5em;
-	text-decoration: none;
-	color: #FFFFFF;
-}
-
-.upfront-nav a:hover {
-	opacity: 0.8;
-}
-
-.upfront-nav ul {
+.links {
 	list-style: none;
 	padding: 0;
-	margin: 0 auto;
-	width: 560px; /* 140 x number of items */
+	margin: 2rem 0 0;
 }
 
-.upfront-nav li {
-	display: block;
-	width: 100px;
-	margin: 0 20px;
-	float: left;
-	list-style: none;
-	text-align: center;
+.links li {
+	margin: 0.35rem 0;
 }
 
-.upfront-nav i {
-	margin-bottom: 10px;
-	text-shadow: 5px 4px 0px rgba(0, 0, 0, 0.2);
-}
-
-
-.upfront-nav.small-icons li {
-	width: 80px;
-}
-
-
-
-/*--------------CONTENT------------*/
-
-#content {
-	background-color: #f5f5f5;
-	border-top: 1px solid #fff;
-	border-bottom: 1px solid #eee;
-}
-
-#content h2 {
-	font-family: MuseoSlab-500;
-	font-size: 40px;
-	text-shadow: 1px 2px 0px #f5f5f5, 4px 5px 0px rgba(0, 0, 0, 0.15);
-}
-
-.content-section {
-	margin: 20px 0;
-}
-
-.content-section div:last-child {
-	margin-bottom: 0;
-}
-
-.showcase-item {
-	width: 220px;
-}
-
-.showcase-l {
-	margin: 40px 0;
-}
-
-.showcase-r {
-	margin: 60px 0;
-}
-
-.showcase-r p:first-of-type {
-	margin-top: 0;
-}
-
-.showcase-l p:first-of-type {
-	margin-top: 0;
-}
-
-.showcase-l p {
-	width: 400px;
-	float: right;
-}
-
-.showcase-l .showcase-item{
-	float: left;
-}
-
-.showcase-r p {
-	width: 400px;
-	float: left;
-}
-
-.showcase-r .showcase-item{
-	float: right;
-}
-
-
-
-
-#content .upfront-nav ul {
-	width: 360px; /* 120px x number of icons */
-}
-
-#content .upfront-nav i {
-	margin-bottom: 10px;
-	text-shadow: 2px 1px 0px #f5f5f5, 4px 3px 0px rgba(0, 0, 0, 0.15);
-}
-
-#content .upfront-nav a {
-	font-size: 18px;
-	color: #444444;
-}
-
-
-#contact-icons {
-	border-top: 1px dashed #d5d5d5;
-	padding: 25px 0 0;
-	margin: 40px 100px 10px;
-}
-
-
-
-/*--------------FIXES------------*/
-
-/* For modern browsers */
-.clearfix:before,
-.clearfix:after {
-    content:"";
-    display:table;
-}
-.clearfix:after {
-    clear:both;
-}
-/* For IE 6/7 (trigger hasLayout) */
-.clearfix {
-    zoom:1;
-}
-
-.clearfix-div {
-	clear: both;
+@media (max-width: 480px) {
+	html, body { font-size: 17px; }
+	main { padding: 8vh 20px 6vh; }
+	h1 { font-size: 1.85rem; }
 }
