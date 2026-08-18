@@ -37,6 +37,9 @@ function pickStart() {
   return center;
 }
 
+// `distance` drives the colour fade and is only meaningful during a colour
+// pass: it is zeroed when each colour pass begins and left stale during erase,
+// which never paints from it.
 function resetDistance() {
   for (var k = 0; k < distance.length; k++) {
     distance[k] = 0;
