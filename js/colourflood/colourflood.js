@@ -152,17 +152,11 @@ function paintHSL(h, s, l, idx) {
 }
 
 function popRandom(array) {
-
-  if (!(n = array.length)) return;
-
-
-  var n;
+  var n = array.length;
+  if (!n) return;
   var i = Math.random() * n | 0;
-  var t;
-
-  t = array[i];
+  var t = array[i];
   array[i] = array[n - 1];
   array[n - 1] = t;
-
   return array.pop();
 }
