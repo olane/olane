@@ -1,5 +1,5 @@
 # olane
-Static site for www.olane.uk
+Static site for olane.dev
 
 ## Deployment
 
