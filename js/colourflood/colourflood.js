@@ -106,8 +106,8 @@ function exploreFrontier() {
       idx = i0 * 4;
 
   if (mode === "colour") {
-    var fade = Math.exp(-d0 * 0.0008);
-    paintHSL(((d0)/3.5 + hueShift[i0]) % 360, fade, 1 - 0.5 * fade, idx);
+    var fade = Math.exp(-d0 * 0.0003);
+    paintHSL(((d0)/5.5 + hueShift[i0]) % 360, fade, 1 - 0.5 * fade, idx);
   } else {
     canvasData[idx] = 0;
     canvasData[idx + 1] = 0;

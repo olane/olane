@@ -225,26 +225,19 @@ function findMainSea(width, height, land) {
   return mainSea;
 }
 
-// Punch random holes through the coastline so colour can get out, making sure
-// every landmass has at least one opening.
+// Punch a single hole through the coastline of each landmass so colour can get
+// out, making sure every landmass has exactly one opening.
 function punchHoles(width, height, mainSea, cells, coasts) {
   var n = cells.length;
   for (var c = 0; c < coasts.length; c++) {
     var coast = coasts[c];
     var m = coast.length;
-    var target = Math.max(1, Math.min(20, Math.round(m * 0.002)));
     for (var k = m - 1; k > 0; k--) {
       var r = (Math.random() * (k + 1)) | 0;
       var t = coast[k]; coast[k] = coast[r]; coast[r] = t;
     }
-    var made = 0;
-    for (k = 0; k < m && made < target; k++) {
-      if (tryOpenHole(coast[k], width, height, mainSea, cells)) made++;
-    }
-    if (made === 0) {
-      for (k = 0; k < m; k++) {
-        if (tryOpenHole(coast[k], width, height, mainSea, cells)) { made++; break; }
-      }
+    for (k = 0; k < m; k++) {
+      if (tryOpenHole(coast[k], width, height, mainSea, cells)) break;
     }
   }
 }
@@ -271,7 +264,8 @@ function tryOpenHole(cell, width, height, mainSea, cells) {
 
 // Any body of water left sealed off from the main sea (enclosed bays, or the
 // Baltic where the map is clipped) is joined to it with a passage through the
-// land, so colour can flow across the whole sea.
+// land, so colour can flow across the whole sea. Only pockets big enough to
+// notice are connected, to keep the number of holes to a minimum.
 function connectEnclosedSeas(width, height, land, mainSea, cells) {
   var n = cells.length;
   var seen = new Uint8Array(n);
@@ -290,6 +284,7 @@ function connectEnclosedSeas(width, height, land, mainSea, cells) {
       if (x > 0) { j = c - 1; if (!land[j] && !seen[j] && !mainSea[j]) { seen[j] = 1; stack.push(j); } }
       if (x < width - 1) { j = c + 1; if (!land[j] && !seen[j] && !mainSea[j]) { seen[j] = 1; stack.push(j); } }
     }
+    if (pocket.length < 100) continue;
     // Find a land cell separating this pocket from the main sea.
     outer:
     for (var k = 0; k < pocket.length; k++) {
