@@ -11,7 +11,7 @@ canvasEl.height = height;
 
 // One full flood (or erase) should cover the canvas in this much wall-clock time.
 var totalCells = width * height;
-var FILL_MS = 60 * 1000;
+var FILL_MS = 120 * 1000;
 
 var cells,
     context = canvasEl.getContext("2d"),
