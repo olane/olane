@@ -9,11 +9,6 @@ var width = Math.floor(rect.width * dpr),
 canvasEl.width = width;
 canvasEl.height = height;
 
-var N = 1 << 0,
-    S = 1 << 1,
-    W = 1 << 2,
-    E = 1 << 3;
-
 var cells,
     context = canvasEl.getContext("2d"),
     canvasImage = context.createImageData(width, height),
