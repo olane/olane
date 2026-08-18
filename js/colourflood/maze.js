@@ -46,7 +46,7 @@ function generateMaze(width, height) {
 
   var mainSea = findMainSea(width, height, land);
 
-  punchHoles(width, height, mainSea, cells, coasts);
+  punchHoles(width, height, land, mainSea, cells, coasts);
   connectEnclosedSeas(width, height, land, mainSea, cells);
 
   return cells;
@@ -226,8 +226,10 @@ function findMainSea(width, height, land) {
 }
 
 // Punch a single hole through the coastline of each landmass so colour can get
-// out, making sure every landmass has exactly one opening.
-function punchHoles(width, height, mainSea, cells, coasts) {
+// out. Holes always open to the main sea where possible; only landmasses that
+// touch no main sea (islands inside enclosed seas) fall back to any sea, which
+// the flood reaches through the land maze.
+function punchHoles(width, height, land, mainSea, cells, coasts) {
   var n = cells.length;
   for (var c = 0; c < coasts.length; c++) {
     var coast = coasts[c];
@@ -236,15 +238,19 @@ function punchHoles(width, height, mainSea, cells, coasts) {
       var r = (Math.random() * (k + 1)) | 0;
       var t = coast[k]; coast[k] = coast[r]; coast[r] = t;
     }
-    for (k = 0; k < m; k++) {
-      if (tryOpenHole(coast[k], width, height, mainSea, cells)) break;
+    var done = false;
+    for (k = 0; k < m && !done; k++) {
+      done = openToSea(coast[k], width, height, land, mainSea, cells, true);
+    }
+    if (!done) {
+      for (k = 0; k < m && !done; k++) {
+        done = openToSea(coast[k], width, height, land, mainSea, cells, false);
+      }
     }
   }
 }
 
-// Open a coastal cell to an adjacent main-sea cell (it is already reachable
-// through the land maze).
-function tryOpenHole(cell, width, height, mainSea, cells) {
+function openToSea(cell, width, height, land, mainSea, cells, preferMain) {
   var n = cells.length;
   var x = cell % width;
   var nb = [];
@@ -254,7 +260,7 @@ function tryOpenHole(cell, width, height, mainSea, cells) {
   if (x < width - 1) nb.push(cell + 1);
   for (var k = 0; k < nb.length; k++) {
     var j = nb[k];
-    if (mainSea[j]) {
+    if (preferMain ? mainSea[j] : !land[j]) {
       openEdge(cell, j, cells, width);
       return true;
     }
@@ -262,9 +268,9 @@ function tryOpenHole(cell, width, height, mainSea, cells) {
   return false;
 }
 
-// Any body of water left sealed off from the main sea (enclosed bays, or the
-// Baltic where the map is clipped) is joined to it with a passage through the
-// land, so colour can flow across the whole sea. Only pockets big enough to
+// Any body of water left sealed off (enclosed bays, or the Irish Sea where the
+// map crops through it on phones) is joined to the land with a passage, so
+// colour flowing through the maze floods it too. Only pockets big enough to
 // notice are connected, to keep the number of holes to a minimum.
 function connectEnclosedSeas(width, height, land, mainSea, cells) {
   var n = cells.length;
@@ -285,7 +291,7 @@ function connectEnclosedSeas(width, height, land, mainSea, cells) {
       if (x < width - 1) { j = c + 1; if (!land[j] && !seen[j] && !mainSea[j]) { seen[j] = 1; stack.push(j); } }
     }
     if (pocket.length < 100) continue;
-    // Find a land cell separating this pocket from the main sea.
+    // Open a passage from this pocket into the land, which the flood fills.
     outer:
     for (var k = 0; k < pocket.length; k++) {
       var p = pocket[k];
@@ -296,20 +302,9 @@ function connectEnclosedSeas(width, height, land, mainSea, cells) {
       if (px > 0) nb.push(p - 1);
       if (px < width - 1) nb.push(p + 1);
       for (var m = 0; m < nb.length; m++) {
-        var b = nb[m];
-        if (!land[b]) continue;
-        var bx = b % width;
-        var bn = [];
-        if (b >= width) bn.push(b - width);
-        if (b < n - width) bn.push(b + width);
-        if (bx > 0) bn.push(b - 1);
-        if (bx < width - 1) bn.push(b + 1);
-        for (var mm = 0; mm < bn.length; mm++) {
-          if (mainSea[bn[mm]]) {
-            openEdge(b, p, cells, width);
-            openEdge(b, bn[mm], cells, width);
-            break outer;
-          }
+        if (land[nb[m]]) {
+          openEdge(nb[m], p, cells, width);
+          break outer;
         }
       }
     }

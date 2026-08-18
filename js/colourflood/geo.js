@@ -192,15 +192,22 @@ var VIEW_YSPAN = (VIEW.latMax - VIEW.latMin);
 
 var CAMBRIDGE = [0.12, 52.205];
 
-// Project a lon/lat point onto a canvas of the given size (aspect-preserving,
-// centred), returning pixel coordinates.
+// Project a lon/lat point onto a canvas of the given size (centred). On
+// portrait screens the map fills the whole screen; on landscape screens it
+// fits the height with a little zoom. The portrait centre is shifted east so
+// the crop never cuts through Ireland (which would seal off the Irish Sea);
+// the straight map edges always fall off-screen.
 function projectPoint(lon, lat, width, height) {
   var xg = (lon - VIEW.lonMin) / (VIEW.lonMax - VIEW.lonMin) * VIEW_XSPAN;
   var yg = (VIEW.latMax - lat) / (VIEW.latMax - VIEW.latMin) * VIEW_YSPAN;
-  var s = Math.min(width / VIEW_XSPAN, height / VIEW_YSPAN);
+  var xc = (width > height ? (VIEW.lonMin + VIEW.lonMax) / 2 - VIEW.lonMin : -0.75 - VIEW.lonMin) / (VIEW.lonMax - VIEW.lonMin) * VIEW_XSPAN;
+  var yc = VIEW_YSPAN / 2;
+  var s = width > height
+    ? Math.min(width / VIEW_XSPAN, height / VIEW_YSPAN) * 1.1
+    : Math.max(width / VIEW_XSPAN, height / VIEW_YSPAN);
   return [
-    xg * s + (width - VIEW_XSPAN * s) / 2,
-    yg * s + (height - VIEW_YSPAN * s) / 2
+    (xg - xc) * s + width / 2,
+    (yg - yc) * s + height / 2
   ];
 }
 
