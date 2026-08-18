@@ -97,17 +97,16 @@ document.addEventListener("click", function(event) {
 });
 
 function exploreFrontier() {
-  if ((i0 = popRandom(frontier)) == null) return true;
+  var i0 = popRandom(frontier);
+  if (i0 == null) return true;
 
-  var i0,
-      i1,
-      d0 = distance[i0],
-      d1 = d0 + .25,
+  var d0 = distance[i0],
+      d1 = d0 + 0.25,
       idx = i0 * 4;
 
   if (mode === "colour") {
     var fade = Math.exp(-d0 * 0.0003);
-    paintHSL(((d0)/5.5 + hueShift[i0]) % 360, fade, 1 - 0.5 * fade, idx);
+    paintHSL((d0 / 5.5 + hueShift[i0]) % 360, fade, 1 - 0.5 * fade, idx);
   } else {
     canvasData[idx] = 0;
     canvasData[idx + 1] = 0;
@@ -115,11 +114,23 @@ function exploreFrontier() {
     canvasData[idx + 3] = 0;
   }
 
-  if (cells[i0] & E && cells[i1 = i0 + 1] & W && !visited[i1]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
-  if (cells[i0] & W && cells[i1 = i0 - 1] & E && !visited[i1]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
-  if (cells[i0] & S && cells[i1 = i0 + width] & N && !visited[i1]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
-  if (cells[i0] & N && cells[i1 = i0 - width] & S && !visited[i1]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
-
+  var dirs = [
+    [E, W, 1],
+    [W, E, -1],
+    [S, N, width],
+    [N, S, -width]
+  ];
+  for (var k = 0; k < dirs.length; k++) {
+    var out = dirs[k][0],
+        incoming = dirs[k][1],
+        i1 = i0 + dirs[k][2];
+    if ((cells[i0] & out) && (cells[i1] & incoming) && !visited[i1]) {
+      distance[i1] = d1;
+      hueShift[i1] = hueShift[i0];
+      visited[i1] = 1;
+      frontier.push(i1);
+    }
+  }
 }
 
 function paintHSL(h, s, l, idx) {
