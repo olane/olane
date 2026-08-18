@@ -9,6 +9,10 @@ var width = Math.floor(rect.width * dpr),
 canvasEl.width = width;
 canvasEl.height = height;
 
+// One full flood (or erase) should cover the canvas in this much wall-clock time.
+var totalCells = width * height;
+var FILL_MS = 60 * 1000;
+
 var cells,
     context = canvasEl.getContext("2d"),
     canvasImage = context.createImageData(width, height),
@@ -52,9 +56,13 @@ function resetVisited(startPoint) {
 function startTimer() {
   if (isRunning) return;
   isRunning = true;
-  function frame() {
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(now - last, 250);
+    last = now;
+    var budget = Math.ceil(totalCells * dt / FILL_MS);
     var done = false;
-    for (var i = 0; i < 400; ++i) {
+    for (var i = 0; i < budget; ++i) {
       if (exploreFrontier()) {
         done = true;
         break;
