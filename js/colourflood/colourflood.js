@@ -53,15 +53,23 @@ function startTimer() {
   if (isRunning) return;
   isRunning = true;
   function frame() {
-    var done = false;
+    var minX = width, minY = height, maxX = -1, maxY = -1;
+    var painted = false;
     for (var i = 0; i < 400; ++i) {
-      if (exploreFrontier()) {
-        done = true;
-        break;
-      }
+      var i0 = exploreFrontier();
+      if (i0 < 0) break;
+      var x = i0 % width,
+          y = (i0 / width) | 0;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      painted = true;
     }
-    context.putImageData(canvasImage, 0, 0);
-    if (done) {
+    if (painted) {
+      context.putImageData(canvasImage, 0, 0, minX, minY, maxX - minX + 1, maxY - minY + 1);
+    }
+    if (frontier.length === 0) {
       isRunning = false;
       mode = (mode === "colour") ? "erase" : "colour";
       if (mode === "colour") resetDistance();
@@ -94,9 +102,16 @@ document.addEventListener("click", function(event) {
   startTimer();
 });
 
+var dirs = [
+  [E, W, 1],
+  [W, E, -1],
+  [S, N, width],
+  [N, S, -width]
+];
+
 function exploreFrontier() {
   var i0 = popRandom(frontier);
-  if (i0 == null) return true;
+  if (i0 == null) return -1;
 
   var d0 = distance[i0],
       d1 = d0 + 0.25,
@@ -112,12 +127,6 @@ function exploreFrontier() {
     canvasData[idx + 3] = 0;
   }
 
-  var dirs = [
-    [E, W, 1],
-    [W, E, -1],
-    [S, N, width],
-    [N, S, -width]
-  ];
   for (var k = 0; k < dirs.length; k++) {
     var out = dirs[k][0],
         incoming = dirs[k][1],
@@ -129,6 +138,8 @@ function exploreFrontier() {
       frontier.push(i1);
     }
   }
+
+  return i0;
 }
 
 function paintHSL(h, s, l, idx) {
