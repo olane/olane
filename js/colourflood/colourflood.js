@@ -14,10 +14,8 @@ var N = 1 << 0,
     W = 1 << 2,
     E = 1 << 3;
 
-var canvas = d3.select("#bg");
-
 var cells,
-    context = canvas.node().getContext("2d"),
+    context = canvasEl.getContext("2d"),
     canvasImage = context.createImageData(width, height),
     canvasData = canvasImage.data,
     distance = new Float32Array(width * height),
@@ -56,7 +54,7 @@ function resetVisited(startPoint) {
 function startTimer() {
   if (isRunning) return;
   isRunning = true;
-  d3.timer(function() {
+  function frame() {
     var done = false;
     for (var i = 0; i < 400; ++i) {
       if (exploreFrontier()) {
@@ -71,9 +69,11 @@ function startTimer() {
       if (mode === "colour") resetDistance();
       resetVisited(pickStart());
       startTimer();
-      return true;
+      return;
     }
-  });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
 
 mazeWorker.addEventListener("message", function(event) {
