@@ -23,7 +23,7 @@ var cells,
     distance = d3.range(width * height).map(function() { return 0; }),
     visited = new Uint8Array(width * height),
     hueShift = new Float32Array(width * height),
-    center = Math.floor(width / 2) + Math.floor(height / 2) * width,
+    center = latLonToCell(CAMBRIDGE[0], CAMBRIDGE[1], width, height),
     frontier = [center];
 
 visited[center] = 1;
@@ -36,7 +36,7 @@ var isRunning = false;
 var mode = "colour";
 
 function pickStart() {
-  return Math.floor(Math.random() * (width * height));
+  return center;
 }
 
 function resetDistance() {
@@ -106,8 +106,8 @@ function exploreFrontier() {
       idx = i0 * 4;
 
   if (mode === "colour") {
-    var fade = Math.exp(-d0 * 0.0003);
-    paintHSL(((d0)/5.5 + hueShift[i0]) % 360, fade, 1 - 0.5 * fade, idx);
+    var fade = Math.exp(-d0 * 0.0008);
+    paintHSL(((d0)/3.5 + hueShift[i0]) % 360, fade, 1 - 0.5 * fade, idx);
   } else {
     canvasData[idx] = 0;
     canvasData[idx + 1] = 0;
@@ -115,10 +115,10 @@ function exploreFrontier() {
     canvasData[idx + 3] = 0;
   }
 
-  if (cells[i0] & E && !visited[i1 = i0 + 1])     distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
-  if (cells[i0] & W && !visited[i1 = i0 - 1])     distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
-  if (cells[i0] & S && !visited[i1 = i0 + width]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
-  if (cells[i0] & N && !visited[i1 = i0 - width]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
+  if (cells[i0] & E && cells[i1 = i0 + 1] & W && !visited[i1]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
+  if (cells[i0] & W && cells[i1 = i0 - 1] & E && !visited[i1]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
+  if (cells[i0] & S && cells[i1 = i0 + width] & N && !visited[i1]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
+  if (cells[i0] & N && cells[i1 = i0 - width] & S && !visited[i1]) distance[i1] = distance[i1] || d1, hueShift[i1] = hueShift[i0], visited[i1] = 1, frontier.push(i1);
 
 }
 
